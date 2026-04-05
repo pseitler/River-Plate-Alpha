@@ -22,16 +22,19 @@ def main():
     required_files = [TRANSACTIONS_FILE]
 
     # 3. Validar existencia
+    print("[INFO] Verificando archivos requeridos...")
     if not validate_files_exist(required_files):
         print("\n[ERROR] Faltan archivos en la carpeta 'data'.")
         sys.exit(1)
+    print("[INFO] Archivos requeridos encontrados.")
 
     # 4. Ejecutar análisis
     try:
+        print("[INFO] Iniciando run_week()...")
         results = run_week()
         print("\n[OK] Reportes generados en la carpeta 'public' (Lista para Vercel).")
     except Exception as e:
-        print("\n[ERROR CRITICO]:")
+        print(f"\n[ERROR CRITICO EXCEPCION]: {e}")
         traceback.print_exc()
         sys.exit(1)
 
