@@ -1,5 +1,6 @@
 {
-  "installCommand": "echo 'Instalacion aislada'",
-  "buildCommand": "python3 -m venv venv && . venv/bin/activate && pip install -r requirements.txt && python main.py",
-  "outputDirectory": "public"
+  "buildCommand": "echo 'Deploying pre-built static files...'",
+  "installCommand": "echo 'No install needed'",
+  "outputDirectory": "public",
+  "framework": null
 }
