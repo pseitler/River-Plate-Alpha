@@ -1,4 +1,5 @@
 {
+  "installCommand": "python3 -m pip install -r requirements.txt",
   "buildCommand": "python3 main.py",
   "outputDirectory": "public",
   "framework": null
