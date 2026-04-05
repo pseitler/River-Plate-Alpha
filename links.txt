@@ -1,0 +1,25 @@
+Links para bajar archivos que van en C:\Users\User\Documents\Prog Inv\metals\data - Aparte del holdings
+
+
+https://www.spdrgoldshares.com/usa/gld/#charts-data
+
+abajo donde dice historical data. Borrar primer hoja
+
+archivo
+
+US_GLD_Archive_EN.xlsx
+
+https://www.blackrock.com/us/individual/products/239855/
+
+Este es el SLV. Grabar en XLSX porque tiene error sino
+
+archivo
+
+iShares-Silver-Trust_fund.xlsx
+
+https://publicreporting.cftc.gov/stories/s/Legacy-Futures/yjak-hhbj/
+aca el cot. Es el reporte legacy futures. Elegi gold y silver y puse filtro desde 1/1/2000
+
+archivo
+
+Legacy_-_Futures_Only_20260228.csv

@@ -1,0 +1,4 @@
+Date,Ticker,Type,Quantity,Price,Currency,ExchangeRateToUSD
+2026-01-02,GLD,BUY,10,210.50,USD,1.0
+2026-01-10,PHAG.MI,BUY,50,28.40,EUR,1.10
+2026-02-15,GLD,SELL,5,225.00,USD,1.0
