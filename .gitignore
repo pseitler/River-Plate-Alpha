@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Directorios de Inteligencia Artificial locales
+.gemini/
+
+# Directorio de reportes antiguos (antes v7.0)
+reports/

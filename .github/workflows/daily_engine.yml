@@ -1,0 +1,42 @@
+name: River Plate Alpha - Daily Quant Engine
+
+on:
+  schedule:
+    # 22:00 UTC = 23:00 / 00:00 Madrid (Cierre 100% garantizado de Wall Street)
+    # Corre de Lunes a Viernes (1-5)
+    - cron: '0 22 * * 1-5'
+  workflow_dispatch: # Permite ejecutar el bot manualmente con un click en GitHub
+  push:
+    paths:
+      - 'data/transactions.csv' # Dispara el calculo automaticamente SI TU editas tus operaciones
+
+permissions:
+  contents: write # Requerido para poder guardar el reporte generado de vuelta al repositorio
+
+jobs:
+  run_quant_engine:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Descargando Repositorio
+        uses: actions/checkout@v4
+
+      - name: 2. Preparando Python 3.12 (Zero-Bugs)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: 3. Instalando Cerebro Cuantitativo
+        run: pip install -r requirements.txt
+
+      - name: 4. Ejecutando Engine y Modelos
+        run: python main.py
+
+      - name: 5. Enviando Resultados a Vercel
+        run: |
+          git config --global user.name "River Plate Alpha Bot"
+          git config --global user.email "bot@riverplatealpha.com"
+          git add public/
+          git commit -m "Auto-update: Actualizacion diaria finalizada" || echo "No changes to commit"
+          git push

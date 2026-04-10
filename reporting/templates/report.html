@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Weekly Metals Report</title>
+<style>
+body { font-family: Arial, sans-serif; background: #f4f6f8; padding: 20px; line-height: 1.5; }
+.container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 12px rgba(0,0,0,0.1); }
+.section { margin-bottom: 25px; }
+.section h2 { background: #003366; color: white; padding: 10px; border-radius: 4px; }
+.section table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+.section table th, .section table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+.green { color: #0a7a0a; font-weight: bold; }
+.red   { color: #b30000; font-weight: bold; }
+.yellow{ color: #c7a600; font-weight: bold; }
+.throttle{ color:#b3006b; font-weight:bold; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Weekly Precious Metals Report</h1>
+    <p><strong>Date:</strong> {{date}}</p>
+    <p><strong>Signal:</strong> <span class="{{signal_class}}">{{signal}}</span></p>
+
+    <div class="section">
+        <h2>GSR Metrics</h2>
+        <table>
+            <tr><th>GSR0</th><td>{{GSR0}}</td></tr>
+            <tr><th>GSR1</th><td>{{GSR1}}</td></tr>
+            <tr><th>GSR2</th><td>{{GSR2}}</td></tr>
+            <tr><th>P10</th><td>{{P10}}</td></tr>
+            <tr><th>P20</th><td>{{P20}}</td></tr>
+            <tr><th>P50</th><td>{{P50}}</td></tr>
+            <tr><th>P80</th><td>{{P80}}</td></tr>
+            <tr><th>P90</th><td>{{P90}}</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Volatility & Momentum</h2>
+        <table>
+            <tr><th>Volatility (26w)</th><td>{{vol_now}}</td></tr>
+            <tr><th>Volatility Percentile</th><td>{{vol_pct}}</td></tr>
+            <tr><th>GSR Sigma (z-score)</th><td>{{gsr_sigma}}</td></tr>
+            <tr><th>RSI_now</th><td>{{RSI_now}}</td></tr>
+            <tr><th>RSI_prev</th><td>{{RSI_prev}}</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Portfolio Summary</h2>
+        <table>
+            <tr><th>Total Value</th><td>{{total_value}}</td></tr>
+            <tr><th>Layer 1 Weight</th><td>{{layer1}}</td></tr>
+            <tr><th>Layer 2 Weight</th><td>{{layer2}}</td></tr>
+            <tr><th>Layer 3 Weight</th><td>{{layer3}}</td></tr>
+            <tr><th>HHI</th><td>{{HHI}}</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Holdings</h2>
+        <table>
+            <tr>
+                <th>Asset</th><th>Ticker</th><th>Business Model</th>
+                <th>Layer</th><th>Value</th><th>Weight</th>
+            </tr>
+            {{holdings_rows}}
+        </table>
+    </div>
+</div>
+</body>
+</html>

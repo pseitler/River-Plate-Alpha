@@ -1,0 +1,6 @@
+{
+  "buildCommand": "echo 'Deploying pre-built static files...'",
+  "installCommand": "echo 'No install needed'",
+  "outputDirectory": "public",
+  "framework": null
+}
