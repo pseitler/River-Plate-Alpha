@@ -4,7 +4,7 @@ def generate_xlsx_report(results, outfile):
     df_perf = pd.DataFrame([{"Activo": a, "Actual": m["Current"], "1W": m["1W"], "1M": m["1M"]} for a, m in results['performance'].items()])
     df_diag = pd.DataFrame(results["diagnostic"])
     df_risk = pd.DataFrame(results["risk_data"])
-    df_hold = results["holdings"].copy().sort_values("Layer").drop(columns=['Lots'], errors='ignore')
+    df_hold = results["holdings"].copy().sort_values("Layer")
     
     # Modelos Cuantitativos
     df_models = pd.DataFrame([

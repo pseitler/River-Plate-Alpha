@@ -27,29 +27,14 @@ def run_week():
         
     prices = pd.DataFrame()
     for t in ["GC=F", "SI=F", "DX-Y.NYB", "^VIX", "^TNX", "GDX", "GLD", "CHF=X"]:
-        try:
-            if 'Close' in macro_data[t] and not macro_data[t].empty:
-                s = macro_data[t]['Close'].squeeze()
-                s.name = t
-                prices = pd.concat([prices, s], axis=1)
-            else:
-                prices[t] = pd.Series(dtype=float)
-        except Exception:
-            prices[t] = pd.Series(dtype=float)
-            
-    # Llenar faltantes o nulos temporalmente
+        s = macro_data[t]['Close'].squeeze()
+        s.name = t
+        prices = pd.concat([prices, s], axis=1)
+        
     prices.ffill(inplace=True)
-    prices.bfill(inplace=True)
-    for col in prices.columns:
-        if prices[col].isna().all():
-            prices[col] = 0.0  # fallback si todo falla
-    
     prices.dropna(inplace=True)
     
-    try:
-        current_eur_usd = float(macro_data["EURUSD=X"]['Close'].squeeze().iloc[-1])
-    except:
-        current_eur_usd = 1.05 # Fallback razonable
+    current_eur_usd = float(macro_data["EURUSD=X"]['Close'].squeeze().iloc[-1])
 
     # --------------------------------------------------------
     # BLOQUE 2: CARTERA: LEDGER TRANSACCIONAL
@@ -87,37 +72,8 @@ def run_week():
     }
     hold['Layer'] = hold['Ticker'].str.strip().map(diccionario_capas).fillna("🚨 NO CLASIFICADO")
 
-    # Normalización a USD / EUR / Local
-    def get_market_values(row):
-        local_val = row['Current Market Value (Local)']
-        cur = str(row['Currency']).upper().strip()
-        
-        usd_val = local_val
-        if cur == 'EUR':
-            usd_val = local_val * current_eur_usd
-            
-        eur_val = usd_val / current_eur_usd if current_eur_usd > 0 else usd_val
-        
-        # Average Cost in other currencies
-        avg_cost_usd = row.get('Average Cost USD', 0.0)
-        avg_cost_eur = avg_cost_usd / current_eur_usd if current_eur_usd > 0 else avg_cost_usd
-        
-        # Local price in other currencies
-        price_local = row['Current Price']
-        price_usd = price_local * current_eur_usd if cur == 'EUR' else price_local
-        price_eur = price_usd / current_eur_usd if current_eur_usd > 0 else price_usd
-        
-        row['Current Market Value'] = usd_val # Legacy total sum compatible
-        row['Current Market Value (USD)'] = usd_val
-        row['Current Market Value (EUR)'] = eur_val
-        
-        row['Current Price (USD)'] = price_usd
-        row['Current Price (EUR)'] = price_eur
-        
-        row['Average Cost EUR'] = avg_cost_eur
-        return row
-        
-    hold = hold.apply(get_market_values, axis=1)
+    # Normalización a USD
+    hold['Current Market Value'] = hold.apply(lambda row: row['Current Market Value (Local)'] * current_eur_usd if str(row['Currency']).upper() == 'EUR' else row['Current Market Value (Local)'], axis=1)
 
     # --------------------------------------------------------
     # MODELO 1: ARBITRAJE ESTADÍSTICO (GLD vs GDX)
@@ -268,54 +224,11 @@ def run_week():
     perf_data = {"Gold ($)": calc_perf(prices['GC=F']), "Silver ($)": calc_perf(prices['SI=F'])}
 
     # --------------------------------------------------------
-    # PLAN DE ACCION RECOMENDADO (PORTFOLIO ACTIONS)
-    # --------------------------------------------------------
-    print("   -> Generando Plan de Acción...")
-    action_plan = []
-    
-    # 1. Limite de Riesgo Total
-    if total_risk_usd > risk_limit_2pct:
-        action_plan.append(f"🚨 URGENTE: Reducir riesgo total del portfolio. VaR Actual de {total_risk_usd:,.2f} USD supera el límite del 2% ({risk_limit_2pct:,.2f} USD).")
-        
-    # 2. Stops Loss
-    for rm in risk_data:
-        if rm['Precio Actual'] <= rm['Trailing Stop']:
-            action_plan.append(f"🛑 STOP LOSS ALCANZADO: Liquidar {rm['Activo']}. Precio ({rm['Precio Actual']}) <= Stop ({rm['Trailing Stop']}).")
-        elif rm['Precio Actual'] <= rm['Trailing Stop'] * 1.03:
-            action_plan.append(f"⚠️ PELIGRO: {rm['Activo']} crítico. Precio ({rm['Precio Actual']}) a <3% del Stop ({rm['Trailing Stop']}).")
-
-    # 3. Rebalanceo Asignación
-    for d in diagnostic:
-        ajuste = float(d['Ajuste Barbell (USD)'])
-        layer = d['Layer']
-        if abs(ajuste) > nav_portafolio * 0.01:  # Desvío mayor al 1% del NAV
-            accion = "COMPRAR" if ajuste > 0 else "VENDER"
-            asset_sug = ""
-            if layer == L1_NAME: asset_sug = "Oro/Plata Físico (ETC UCITS e.g., SGLD, PHAG)"
-            elif layer == L2_NAME: asset_sug = "Acciones/ETFs de mineras consolidadas (e.g., GDX, WPM)"
-            elif layer == L3_NAME: asset_sug = "Mineras Junior / Especulativas (e.g., GDXJ, HL)"
-            
-            action_plan.append(f"⚖️ REBALANCEO {layer}: {accion} {abs(ajuste):,.2f} USD en <strong>{asset_sug}</strong> para alinear peso ({d['Actual']}) al target ({d['Target']}).")
-
-    # 4. Señales Corto Plazo
-    if "COMPRAR" in arb_signal or "VENDER SPREAD" in arb_signal or "CERRAR" in arb_signal:
-        action_plan.append(f"📈 ARBITRAJE GLD/GDX: Ejecutar -> {arb_signal}. <em>(Subyacentes sugeridos: GLD o SGLD físico vs opciones/corto en ETF GDX)</em>")
-
-    if "STRONG BUY" in intermarket_signal:
-        action_plan.append("🚀 ESTRATEGICO: Viento a favor intenso. Priorizar compras activas en <strong>Acciones de Oro/Plata (Layer 2/3)</strong>.")
-    elif "CASH" in intermarket_signal or "Sin Tendencia" in intermarket_signal:
-        action_plan.append("🛡️ ESTRATEGICO: Régimen incierto. Mantener liquidez o rotar a <strong>Oro/Plata Físico puro (Layer 1)</strong>. Evitar mineras.")
-
-    if not action_plan:
-        action_plan.append("✅ PORTFOLIO ALINEADO: Ninguna acción correctiva estructural urgente requerida hoy.")
-
-    # --------------------------------------------------------
     # PAQUETE DE RESULTADOS
     # --------------------------------------------------------
     print("   -> Generando paquetes de reporte de River Plate Alpha...")
     date_str = datetime.now().strftime("%Y-%m-%d")
     results = {
-        "action_plan": action_plan,
         "date": date_str, "total_value": f"{total_val_real:,.2f}", "eur_usd_rate": current_eur_usd,
         "performance": perf_data,
         "portfolio_stats": port_stats, # Nuevo
